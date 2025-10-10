@@ -1,0 +1,269 @@
+# ===================================================================
+# HospitalA — Navigator Follow-Up Logic
+#
+# This file contains the complete set of rules for determining the
+# appropriate action for patient follow-ups. The application will
+# load these rules directly. To modify logic, simply edit this
+# file and commit the changes.
+#
+# The engine processes rules from top to bottom and stops at the
+# first match. Place higher-priority rules above lower-priority ones.
+# ===================================================================
+
+# -------- SAFETY / GLOBAL --------
+- id: GLOBAL_ED_NEW_FINDING
+  when: { encounterType: 'ED', growth: 'new' }
+  then: { navigatorAction: 'notify_provider', communicationMode: 'phone+EMR', specialistReferral: 'primary_care', followUpInterval_months: 0, priority: 'urgent' }
+
+- id: GLOBAL_PATH_MALIGNANT
+  when: { pathologyResult: 'malignant' }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'oncology', followUpInterval_months: 0, priority: 'high' }
+
+- id: GLOBAL_OVERDUE_30_ESCALATE
+  when: { daysOverdue: { gte: 30 }, hasPCPOnFile: true }
+  then: { navigatorAction: 'escalate_review', communicationMode: 'EMR_message', specialistReferral: 'primary_care', followUpInterval_months: 0, priority: 'high' }
+
+- id: GLOBAL_NO_PCP_DEFAULT
+  when: { hasPCPOnFile: false }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'letter+fax', specialistReferral: 'ER_PCP', followUpInterval_months: 0, priority: 'medium' }
+
+# -------- LUNG-RADS (screening) --------
+- id: LUNGRADS_4X_URGENT
+  when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 4X' }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'lung_clinic', followUpInterval_months: 0, priority: 'urgent' }
+
+- id: LUNGRADS_4B_NEW
+  when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 4B', growth: 'new' }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'lung_clinic', followUpInterval_months: 0, priority: 'urgent' }
+
+- id: LUNGRADS_4A
+  when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 4A' }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'lung_clinic', followUpInterval_months: 1, priority: 'high' }
+
+- id: LUNGRADS_3
+  when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 3' }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 6, priority: 'medium' }
+
+- id: LUNGRADS_2
+  when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 2' }
+  then: { navigatorAction: 'mark_followup_complete', communicationMode: 'none', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
+
+- id: LUNGRADS_1_STABLE_CLOSE
+  when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 1', growth: 'stable', timeSinceLastImaging_months: { gte: 24 } }
+  then: { navigatorAction: 'auto_close', communicationMode: 'none', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
+
+# -------- Incidental Pulmonary Nodules (adult ≥35y; simplified ACR) --------
+- id: PULM_INC_GT8MM
+  when: { findingFamily: 'lung', findingType: 'incidental_nodule', size_mm: { gt: 8 } }
+  then: { navigatorAction: 'notify_provider', communicationMode: 'EMR_message', specialistReferral: 'pulmonology', followUpInterval_months: 0, priority: 'high' }
+
+- id: PULM_INC_6TO8MM
+  when: { findingFamily: 'lung', findingType: 'incidental_nodule', size_mm: { gte: 6, lte: 8 } }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 6, priority: 'medium' }
+
+- id: PULM_INC_LT6MM_35PLUS
+  when: { findingFamily: 'lung', findingType: 'incidental_nodule', size_mm: { lt: 6 }, patientAge: { gte: 35 } }
+  then: { navigatorAction: 'no_action', communicationMode: 'none', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
+
+# -------- BI-RADS --------
+- id: BIRADS_5_URGENT
+  when: { findingFamily: 'breast', radsSystem: 'BI-RADS', radsCategory: 'BI-RADS 5' }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'breast_center', followUpInterval_months: 0, priority: 'urgent' }
+
+- id: BIRADS_4_REF
+  when: { findingFamily: 'breast', radsSystem: 'BI-RADS', radsCategory: ['BI-RADS 4','BI-RADS 4A','BI-RADS 4B','BI-RADS 4C'] }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'breast_center', followUpInterval_months: 0, priority: 'high' }
+
+- id: BIRADS_3_6M
+  when: { findingFamily: 'breast', radsSystem: 'BI-RADS', radsCategory: 'BI-RADS 3' }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 6, priority: 'medium' }
+
+- id: BIRADS_0_ADDI
+  when: { findingFamily: 'breast', radsSystem: 'BI-RADS', radsCategory: 'BI-RADS 0' }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 1, priority: 'high' }
+
+# -------- TI-RADS (selected size thresholds) --------
+- id: TIRADS_5_ENDO_URGENT
+  when: { findingFamily: 'thyroid', radsSystem: 'TI-RADS', radsCategory: 'TI-RADS 5', size_cm: { gte: 1.0 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'endocrinology', followUpInterval_months: 0, priority: 'high' }
+
+- id: TIRADS_4_ENDO
+  when: { findingFamily: 'thyroid', radsSystem: 'TI-RADS', radsCategory: 'TI-RADS 4', size_cm: { gte: 1.0 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'endocrinology', followUpInterval_months: 0, priority: 'high' }
+
+- id: TIRADS_3_US_12M
+  when: { findingFamily: 'thyroid', radsSystem: 'TI-RADS', radsCategory: 'TI-RADS 3', size_cm: { gte: 1.5, lt: 2.5 } }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 12, priority: 'medium' }
+
+- id: TIRADS_1_SUBCM_CLOSE
+  when: { findingFamily: 'thyroid', radsSystem: 'TI-RADS', radsCategory: 'TI-RADS 1', size_cm: { lte: 0.9 } }
+  then: { navigatorAction: 'mark_followup_complete', communicationMode: 'none', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
+
+# -------- PI-RADS --------
+- id: PIRADS_5_URGENT
+  when: { findingFamily: 'prostate', radsSystem: 'PI-RADS', radsCategory: 'PI-RADS 5' }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'urology', followUpInterval_months: 0, priority: 'urgent' }
+
+- id: PIRADS_4_REF
+  when: { findingFamily: 'prostate', radsSystem: 'PI-RADS', radsCategory: 'PI-RADS 4' }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'urology', followUpInterval_months: 0, priority: 'high' }
+
+- id: PIRADS_3_NOTIFY
+  when: { findingFamily: 'prostate', radsSystem: 'PI-RADS', radsCategory: 'PI-RADS 3' }
+  then: { navigatorAction: 'notify_provider', communicationMode: 'EMR_message', specialistReferral: 'urology', followUpInterval_months: 0, priority: 'medium' }
+
+- id: PIRADS_1_CLOSE
+  when: { findingFamily: 'prostate', radsSystem: 'PI-RADS', radsCategory: 'PI-RADS 1', hasPriorImaging: true, timeSinceLastImaging_months: { gte: 24 } }
+  then: { navigatorAction: 'mark_followup_complete', communicationMode: 'none', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
+
+# -------- LI-RADS --------
+- id: LIRADS_5_URGENT
+  when: { findingFamily: 'liver', radsSystem: 'LI-RADS', radsCategory: 'LI-RADS 5' }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'hepatology', followUpInterval_months: 0, priority: 'urgent' }
+
+- id: LIRADS_4_REF
+  when: { findingFamily: 'liver', radsSystem: 'LI-RADS', radsCategory: 'LI-RADS 4' }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'hepatology', followUpInterval_months: 0, priority: 'high' }
+
+- id: LIRADS_3_3M
+  when: { findingFamily: 'liver', radsSystem: 'LI-RADS', radsCategory: 'LI-RADS 3' }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 3, priority: 'medium' }
+
+# -------- CAD-RADS (CTA coronary; simplified) --------
+- id: CADRADS_0_LETTER
+  when: { findingFamily: 'cardiac', radsSystem: 'CAD-RADS', radsCategory: 'CAD-RADS 0' }
+  then: { navigatorAction: 'notify_patient_letter', communicationMode: 'letter', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
+
+- id: CADRADS_3_NOTIFY
+  when: { findingFamily: 'cardiac', radsSystem: 'CAD-RADS', radsCategory: 'CAD-RADS 3' }
+  then: { navigatorAction: 'notify_provider', communicationMode: 'EMR_message', specialistReferral: 'cardiology', followUpInterval_months: 0, priority: 'high' }
+
+- id: CADRADS_4_5_REFER
+  when: { findingFamily: 'cardiac', radsSystem: 'CAD-RADS', radsCategory: ['CAD-RADS 4','CAD-RADS 5'] }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'cardiology', followUpInterval_months: 0, priority: 'urgent' }
+
+# -------- O-RADS (US adnexal; simplified) --------
+- id: ORADS_5_URGENT
+  when: { findingFamily: 'ovary', radsSystem: 'O-RADS', radsCategory: 'O-RADS 5' }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'gynecologic_oncology', followUpInterval_months: 0, priority: 'high' }
+
+- id: ORADS_3_6M
+  when: { findingFamily: 'ovary', radsSystem: 'O-RADS', radsCategory: 'O-RADS 3' }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 6, priority: 'medium' }
+
+# -------- NI-RADS (head/neck; simplified) --------
+- id: NIRADS_4_URGENT
+  when: { findingFamily: 'head_neck', radsSystem: 'NI-RADS', radsCategory: 'NI-RADS 4' }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'otolaryngology', followUpInterval_months: 0, priority: 'urgent' }
+
+- id: NIRADS_2_3M
+  when: { findingFamily: 'head_neck', radsSystem: 'NI-RADS', radsCategory: 'NI-RADS 2' }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 3, priority: 'medium' }
+
+# -------- ACR INCIDENTAL — Adrenal --------
+- id: ADRENAL_GT4CM_ENDO
+  when: { findingFamily: 'adrenal', findingType: 'incidentaloma', size_cm: { gt: 4.0 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'endocrinology', followUpInterval_months: 0, priority: 'high' }
+
+- id: ADRENAL_1TO4CM_12M
+  when: { findingFamily: 'adrenal', findingType: 'incidentaloma', size_cm: { gte: 1.0, lte: 4.0 } }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 12, priority: 'medium' }
+
+- id: ADRENAL_LT1CM_CLOSE
+  when: { findingFamily: 'adrenal', findingType: 'incidentaloma', size_cm: { lt: 1.0 }, growth: 'stable' }
+  then: { navigatorAction: 'auto_close', communicationMode: 'none', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
+
+# -------- ACR INCIDENTAL — Renal --------
+- id: RENAL_SOLID_GE4CM_URGENT
+  when: { findingFamily: 'renal', findingType: 'solid_mass', size_cm: { gte: 4.0 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'urology', followUpInterval_months: 0, priority: 'urgent' }
+
+- id: RENAL_SOLID_1TO4CM_REF
+  when: { findingFamily: 'renal', findingType: 'solid_mass', size_cm: { gte: 1.0, lt: 4.0 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'urology', followUpInterval_months: 0, priority: 'high' }
+
+- id: RENAL_CYST_SUBCM_CLOSE
+  when: { findingFamily: 'renal', findingType: 'cystic', size_cm: { lt: 1.0 } }
+  then: { navigatorAction: 'auto_close', communicationMode: 'none', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
+
+# -------- ACR INCIDENTAL — Pancreatic cyst --------
+- id: PANCYST_GE3CM_REF_GI
+  when: { findingFamily: 'pancreas', findingType: 'cyst', size_cm: { gte: 3.0 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'gastroenterology', followUpInterval_months: 0, priority: 'high' }
+
+- id: PANCYST_2TO3CM_6M
+  when: { findingFamily: 'pancreas', findingType: 'cyst', size_cm: { gte: 2.0, lt: 3.0 } }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'gastroenterology', followUpInterval_months: 6, priority: 'high' }
+
+- id: PANCYST_LT2CM_12M
+  when: { findingFamily: 'pancreas', findingType: 'cyst', size_cm: { lt: 2.0 } }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 12, priority: 'medium' }
+
+# -------- ACR INCIDENTAL — Liver (benign vs indeterminate) --------
+- id: LIVER_INDET_3M
+  when: { findingFamily: 'liver', findingType: 'indeterminate_lesion' }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 3, priority: 'medium' }
+
+- id: LIVER_CYST_LT3CM_CLOSE
+  when: { findingFamily: 'liver', findingType: 'cyst', size_cm: { lt: 3.0 }, growth: 'stable' }
+  then: { navigatorAction: 'auto_close', communicationMode: 'none', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
+
+# -------- Aneurysms (AAA, TAA, popliteal, intracranial) --------
+- id: AAA_GE5_5_URGENT
+  when: { findingFamily: 'vascular', findingType: 'aneurysm', aneurysmLocation: 'AAA', aneurysmSize_cm: { gte: 5.5 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'vascular_surgery', followUpInterval_months: 0, priority: 'urgent' }
+
+- id: AAA_4_0_TO_5_4_6M
+  when: { findingFamily: 'vascular', findingType: 'aneurysm', aneurysmLocation: 'AAA', aneurysmSize_cm: { gte: 4.0, lt: 5.5 }, growth: 'stable' }
+  then: { navigatorAction: 'schedule_imaging', communicationMode: 'EMR_message', specialistReferral: 'none', followUpInterval_months: 6, priority: 'high' }
+
+- id: TAA_GE5_5_URGENT
+  when: { findingFamily: 'vascular', findingType: 'aneurysm', aneurysmLocation: 'TAA', aneurysmSize_cm: { gte: 5.5 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'phone+EMR', specialistReferral: 'vascular_surgery', followUpInterval_months: 0, priority: 'urgent' }
+
+- id: POPLITEAL_GE2_0_REF
+  when: { findingFamily: 'vascular', findingType: 'aneurysm', aneurysmLocation: 'popliteal', aneurysmSize_cm: { gte: 2.0 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'vascular_surgery', followUpInterval_months: 0, priority: 'high' }
+
+- id: INTRACRANIAL_GE7MM_NEURO
+  when: { findingFamily: 'vascular', findingType: 'aneurysm', aneurysmLocation: 'intracranial', size_mm: { gte: 7 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'neurosurgery', followUpInterval_months: 0, priority: 'high' }
+
+# -------- CAC (coronary calcium) --------
+- id: CAC_GE300_REF_CARD
+  when: { findingFamily: 'cardiac', findingType: 'CAC', CACScore: { gte: 300 } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'EMR_message', specialistReferral: 'cardiology', followUpInterval_months: 0, priority: 'high' }
+
+- id: CAC_100_299_NOTIFY_HIGH
+  when: { findingFamily: 'cardiac', findingType: 'CAC', CACScore: { gte: 100, lt: 300 } }
+  then: { navigatorAction: 'notify_provider', communicationMode: 'EMR_message', specialistReferral: 'cardiology', followUpInterval_months: 0, priority: 'high' }
+
+- id: CAC_1_99_NOTIFY_MED
+  when: { findingFamily: 'cardiac', findingType: 'CAC', CACScore: { gte: 1, lte: 99 } }
+  then: { navigatorAction: 'notify_provider', communicationMode: 'EMR_message', specialistReferral: 'cardiology', followUpInterval_months: 0, priority: 'medium' }
+
+- id: CAC_0_LETTER
+  when: { findingFamily: 'cardiac', findingType: 'CAC', CACScore: 0 }
+  then: { navigatorAction: 'notify_patient_letter', communicationMode: 'letter', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
+
+# -------- Institutional routing (no PCP but clinic exists) --------
+- id: NOPCP_HAS_LUNG_CLINIC
+  when: { hasPCPOnFile: false, hospitalSpecialists: { contains: 'lung_clinic' } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'letter+fax', specialistReferral: 'lung_clinic', followUpInterval_months: 0, priority: 'medium' }
+
+- id: NOPCP_HAS_UROLOGY
+  when: { hasPCPOnFile: false, hospitalSpecialists: { contains: 'urology' } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'letter+fax', specialistReferral: 'urology', followUpInterval_months: 0, priority: 'medium' }
+
+- id: NOPCP_HAS_BREAST_CENTER
+  when: { hasPCPOnFile: false, hospitalSpecialists: { contains: 'breast_center' } }
+  then: { navigatorAction: 'refer_specialist', communicationMode: 'letter+fax', specialistReferral: 'breast_center', followUpInterval_months: 0, priority: 'medium' }
+
+# -------- Defaults (keep last) --------
+- id: DEFAULT_HAS_PCP_NOTIFY
+  when: { hasPCPOnFile: true }
+  then: { navigatorAction: 'notify_provider', communicationMode: 'EMR_message', specialistReferral: 'primary_care', followUpInterval_months: 0, priority: 'low' }
+
+- id: DEFAULT_NO_PCP_LETTER
+  when: { hasPCPOnFile: false }
+  then: { navigatorAction: 'notify_patient_letter', communicationMode: 'letter', specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' }
