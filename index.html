@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,53 +7,44 @@
     <title>Hospital Rules Engine Interface</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f8f9fa; margin: 0; padding: 20px; }
-        .container { display: flex; gap: 30px; max-width: 1800px; margin: 0 auto; }
+        .container { display: flex; flex-direction: column; gap: 30px; max-width: 1800px; margin: 0 auto; }
+        @media (min-width: 1200px) { .container { flex-direction: row; } }
         .column { flex: 1; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         h1, h2 { color: #111; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; }
-        textarea { width: 100%; height: 70vh; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 14px; padding: 10px; box-sizing: border-box; }
-        button { display: block; width: 100%; padding: 12px; font-size: 16px; font-weight: bold; color: #fff; background-color: #007bff; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; }
-        button:hover { background-color: #0056b3; }
-        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .form-grid label { font-weight: 500; }
-        .form-grid input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { width: 100%; height: 80vh; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 14px; padding: 10px; box-sizing: border-box; background-color: #f4f4f4; }
+        button { display: block; width: 100%; padding: 12px; font-size: 16px; font-weight: bold; color: #fff; background-color: #0d6efd; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; }
+        button:hover { background-color: #0b5ed7; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
+        .form-grid label { font-weight: 500; display: block; margin-bottom: 4px; }
+        .form-grid input, .form-grid select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         #result-display { background-color: #282c34; color: #61dafb; padding: 15px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; margin-top: 20px; min-height: 50px; }
-        .notification { padding: 10px; margin-top: 10px; border-radius: 4px; text-align: center; font-weight: bold; display: none; }
-        .success { background-color: #d4edda; color: #155724; }
-        .error { background-color: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 
-    <h1>Hospital Follow-Up Rules Engine</h1>
+    <h1>Hospital Follow-Up Rules Engine (Client-Side Demo)</h1>
 
     <div class="container">
-        <div class="column">
-            <h2>Rule Editor (rules.yaml)</h2>
-            <textarea id="yaml-editor" spellcheck="false"></textarea>
-            <button id="save-rules-btn">Save Rules</button>
-            <div id="save-notification" class="notification"></div>
-        </div>
-
         <div class="column">
             <h2>Scenario Tester</h2>
             <form id="test-form">
                 <div class="form-grid">
-                    <div><label for="encounterType">Encounter Type</label><input id="encounterType" name="encounterType" type="text"></div>
-                    <div><label for="growth">Growth</label><input id="growth" name="growth" type="text"></div>
-                    <div><label for="pathologyResult">Pathology Result</label><input id="pathologyResult" name="pathologyResult" type="text"></div>
+                    <div><label for="encounterType">Encounter Type</label><select id="encounterType" name="encounterType"><option value="">-- Any --</option><option value="ED">ED</option><option value="Inpatient">Inpatient</option><option value="Outpatient">Outpatient</option></select></div>
+                    <div><label for="growth">Growth</label><select id="growth" name="growth"><option value="">-- Any --</option><option value="new">New</option><option value="stable">Stable</option></select></div>
+                    <div><label for="pathologyResult">Pathology Result</label><select id="pathologyResult" name="pathologyResult"><option value="">-- Any --</option><option value="malignant">Malignant</option><option value="benign">Benign</option><option value="indeterminate">Indeterminate</option></select></div>
                     <div><label for="daysOverdue">Days Overdue</label><input id="daysOverdue" name="daysOverdue" type="number"></div>
-                    <div><label for="hasPCPOnFile">Has PCP On File</label><input id="hasPCPOnFile" name="hasPCPOnFile" type="text" placeholder="true / false"></div>
-                    <div><label for="findingFamily">Finding Family</label><input id="findingFamily" name="findingFamily" type="text"></div>
-                    <div><label for="findingType">Finding Type</label><input id="findingType" name="findingType" type="text"></div>
-                    <div><label for="radsSystem">RADS System</label><input id="radsSystem" name="radsSystem" type="text"></div>
-                    <div><label for="radsCategory">RADS Category</label><input id="radsCategory" name="radsCategory" type="text"></div>
+                    <div><label for="hasPCPOnFile">Has PCP On File</label><select id="hasPCPOnFile" name="hasPCPOnFile"><option value="">-- Any --</option><option value="true">Yes</option><option value="false">No</option></select></div>
+                    <div><label for="findingFamily">Finding Family</label><select id="findingFamily" name="findingFamily"><option value="">-- Any --</option><option value="lung">Lung</option><option value="breast">Breast</option><option value="thyroid">Thyroid</option><option value="prostate">Prostate</option><option value="liver">Liver</option><option value="cardiac">Cardiac</option><option value="ovary">Ovary</option><option value="head_neck">Head/Neck</option><option value="adrenal">Adrenal</option><option value="renal">Renal</option><option value="pancreas">Pancreas</option><option value="vascular">Vascular</option></select></div>
+                    <div><label for="findingType">Finding Type</label><select id="findingType" name="findingType"><option value="">-- Any --</option><option value="screening_nodule">Screening Nodule</option><option value="incidental_nodule">Incidental Nodule</option><option value="incidentaloma">Incidentaloma</option><option value="solid_mass">Solid Mass</option><option value="cystic">Cystic</option><option value="cyst">Cyst</option><option value="indeterminate_lesion">Indeterminate Lesion</option><option value="aneurysm">Aneurysm</option><option value="CAC">CAC</option></select></div>
+                    <div><label for="radsSystem">RADS System</label><select id="radsSystem" name="radsSystem"><option value="">-- Any --</option><option value="Lung-RADS">Lung-RADS</option><option value="BI-RADS">BI-RADS</option><option value="TI-RADS">TI-RADS</option><option value="PI-RADS">PI-RADS</option><option value="LI-RADS">LI-RADS</option><option value="CAD-RADS">CAD-RADS</option><option value="O-RADS">O-RADS</option><option value="NI-RADS">NI-RADS</option></select></div>
+                    <div><label for="radsCategory">RADS Category</label><select id="radsCategory" name="radsCategory"><option value="">-- Any --</option><optgroup label="Lung-RADS"><option value="Lung-RADS 4X">Lung-RADS 4X</option><option value="Lung-RADS 4B">Lung-RADS 4B</option><option value="Lung-RADS 4A">Lung-RADS 4A</option><option value="Lung-RADS 3">Lung-RADS 3</option><option value="Lung-RADS 2">Lung-RADS 2</option><option value="Lung-RADS 1">Lung-RADS 1</option></optgroup><optgroup label="BI-RADS"><option value="BI-RADS 5">BI-RADS 5</option><option value="BI-RADS 4">BI-RADS 4</option><option value="BI-RADS 4A">BI-RADS 4A</option><option value="BI-RADS 4B">BI-RADS 4B</option><option value="BI-RADS 4C">BI-RADS 4C</option><option value="BI-RADS 3">BI-RADS 3</option><option value="BI-RADS 0">BI-RADS 0</option></optgroup><optgroup label="TI-RADS"><option value="TI-RADS 5">TI-RADS 5</option><option value="TI-RADS 4">TI-RADS 4</option><option value="TI-RADS 3">TI-RADS 3</option><option value="TI-RADS 1">TI-RADS 1</option></optgroup><optgroup label="PI-RADS"><option value="PI-RADS 5">PI-RADS 5</option><option value="PI-RADS 4">PI-RADS 4</option><option value="PI-RADS 3">PI-RADS 3</option><option value="PI-RADS 1">PI-RADS 1</option></optgroup><optgroup label="LI-RADS"><option value="LI-RADS 5">LI-RADS 5</option><option value="LI-RADS 4">LI-RADS 4</option><option value="LI-RADS 3">LI-RADS 3</option></optgroup><optgroup label="CAD-RADS"><option value="CAD-RADS 5">CAD-RADS 5</option><option value="CAD-RADS 4">CAD-RADS 4</option><option value="CAD-RADS 3">CAD-RADS 3</option><option value="CAD-RADS 0">CAD-RADS 0</option></optgroup><optgroup label="O-RADS"><option value="O-RADS 5">O-RADS 5</option><option value="O-RADS 3">O-RADS 3</option></optgroup><optgroup label="NI-RADS"><option value="NI-RADS 4">NI-RADS 4</option><option value="NI-RADS 2">NI-RADS 2</option></optgroup></select></div>
                     <div><label for="timeSinceLastImaging_months">Months Since Imaging</label><input id="timeSinceLastImaging_months" name="timeSinceLastImaging_months" type="number"></div>
                     <div><label for="size_mm">Size (mm)</label><input id="size_mm" name="size_mm" type="number"></div>
                     <div><label for="patientAge">Patient Age</label><input id="patientAge" name="patientAge" type="number"></div>
-                    <div><label for="size_cm">Size (cm)</label><input id="size_cm" name="size_cm" type="number"></div>
-                    <div><label for="hasPriorImaging">Has Prior Imaging</label><input id="hasPriorImaging" name="hasPriorImaging" type="text" placeholder="true / false"></div>
-                    <div><label for="aneurysmLocation">Aneurysm Location</label><input id="aneurysmLocation" name="aneurysmLocation" type="text"></div>
-                    <div><label for="aneurysmSize_cm">Aneurysm Size (cm)</label><input id="aneurysmSize_cm" name="aneurysmSize_cm" type="number"></div>
+                    <div><label for="size_cm">Size (cm)</label><input id="size_cm" name="size_cm" type="number" step="0.1"></div>
+                    <div><label for="hasPriorImaging">Has Prior Imaging</label><select id="hasPriorImaging" name="hasPriorImaging"><option value="">-- Any --</option><option value="true">Yes</option><option value="false">No</option></select></div>
+                    <div><label for="aneurysmLocation">Aneurysm Location</label><select id="aneurysmLocation" name="aneurysmLocation"><option value="">-- Any --</option><option value="AAA">AAA</option><option value="TAA">TAA</option><option value="popliteal">Popliteal</option><option value="intracranial">Intracranial</option></select></div>
+                    <div><label for="aneurysmSize_cm">Aneurysm Size (cm)</label><input id="aneurysmSize_cm" name="aneurysmSize_cm" type="number" step="0.1"></div>
                     <div><label for="CACScore">CAC Score</label><input id="CACScore" name="CACScore" type="number"></div>
                     <div><label for="hospitalSpecialists">Hospital Specialists</label><input id="hospitalSpecialists" name="hospitalSpecialists" type="text" placeholder="e.g., lung_clinic,urology"></div>
                 </div>
@@ -61,88 +53,182 @@
             <h2>Result</h2>
             <pre id="result-display">{ "output": "will appear here..." }</pre>
         </div>
+        <div class="column">
+            <h2>Embedded Rules (Read-Only)</h2>
+            <textarea id="rules-viewer" spellcheck="false" readonly></textarea>
+        </div>
     </div>
 
     <script>
-        const yamlEditor = document.getElementById('yaml-editor');
-        const saveButton = document.getElementById('save-rules-btn');
         const testForm = document.getElementById('test-form');
         const resultDisplay = document.getElementById('result-display');
-        const saveNotification = document.getElementById('save-notification');
+        const rulesViewer = document.getElementById('rules-viewer');
 
-        // --- Functions ---
-        
-        // Load rules from the server and populate the editor
-        async function loadRules() {
-            try {
-                const response = await fetch('/api/rules');
-                const rules = await response.text();
-                yamlEditor.value = rules;
-            } catch (error) {
-                yamlEditor.value = 'Error: Could not load rules. Is the server running?';
-                console.error('Failed to load rules:', error);
+        var ACTIONS = {
+            AUTO_CLOSE: 'auto_close',
+            MARK_DONE: 'mark_followup_complete',
+            SCHEDULE: 'schedule_imaging',
+            NOTIFY_PROVIDER: 'notify_provider',
+            NOTIFY_PATIENT: 'notify_patient_letter',
+            REFER: 'refer_specialist',
+            ESCALATE: 'escalate_review',
+            NO_ACTION: 'no_action'
+        };
+
+        var COMMS = {
+            NONE: 'none',
+            EMR: 'EMR_message',
+            FAX: 'fax',
+            PHONE: 'phone',
+            LETTER: 'letter',
+            LETTER_FAX: 'letter+fax',
+            PHONE_EMR: 'phone+EMR'
+        };
+
+        var RULES = [
+          { id: 'GLOBAL_ED_NEW_FINDING', when: { encounterType: 'ED', growth: 'new' }, then: { navigatorAction: ACTIONS.NOTIFY_PROVIDER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'primary_care', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'GLOBAL_PATH_MALIGNANT', when: { pathologyResult: 'malignant' }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'oncology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'GLOBAL_OVERDUE_30_ESCALATE', when: { daysOverdue: { gte: 30 }, hasPCPOnFile: true }, then: { navigatorAction: ACTIONS.ESCALATE, communicationMode: COMMS.EMR, specialistReferral: 'primary_care', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'GLOBAL_NO_PCP_DEFAULT', when: { hasPCPOnFile: false }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.LETTER_FAX, specialistReferral: 'ER_PCP', followUpInterval_months: 0, priority: 'medium' } },
+          { id: 'LUNGRADS_4X_URGENT', when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 4X' }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'lung_clinic', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'LUNGRADS_4B_NEW', when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 4B', growth: 'new' }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'lung_clinic', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'LUNGRADS_4A', when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 4A' }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'lung_clinic', followUpInterval_months: 1, priority: 'high' } },
+          { id: 'LUNGRADS_3', when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 3' }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 6, priority: 'medium' } },
+          { id: 'LUNGRADS_2', when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 2' }, then: { navigatorAction: ACTIONS.MARK_DONE, communicationMode: COMMS.NONE, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'LUNGRADS_1_STABLE_CLOSE', when: { findingFamily: 'lung', findingType: 'screening_nodule', radsSystem: 'Lung-RADS', radsCategory: 'Lung-RADS 1', growth: 'stable', timeSinceLastImaging_months: { gte: 24 } }, then: { navigatorAction: ACTIONS.AUTO_CLOSE, communicationMode: COMMS.NONE, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'PULM_INC_GT8MM', when: { findingFamily: 'lung', findingType: 'incidental_nodule', size_mm: { gt: 8 } }, then: { navigatorAction: ACTIONS.NOTIFY_PROVIDER, communicationMode: COMMS.EMR, specialistReferral: 'pulmonology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'PULM_INC_6TO8MM', when: { findingFamily: 'lung', findingType: 'incidental_nodule', size_mm: { gte: 6, lte: 8 } }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 6, priority: 'medium' } },
+          { id: 'PULM_INC_LT6MM_35PLUS', when: { findingFamily: 'lung', findingType: 'incidental_nodule', size_mm: { lt: 6 }, patientAge: { gte: 35 } }, then: { navigatorAction: ACTIONS.NO_ACTION, communicationMode: COMMS.NONE, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'BIRADS_5_URGENT', when: { findingFamily: 'breast', radsSystem: 'BI-RADS', radsCategory: 'BI-RADS 5' }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'breast_center', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'BIRADS_4_REF', when: { findingFamily: 'breast', radsSystem: 'BI-RADS', radsCategory: ['BI-RADS 4','BI-RADS 4A','BI-RADS 4B','BI-RADS 4C'] }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'breast_center', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'BIRADS_3_6M', when: { findingFamily: 'breast', radsSystem: 'BI-RADS', radsCategory: 'BI-RADS 3' }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 6, priority: 'medium' } },
+          { id: 'BIRADS_0_ADDI', when: { findingFamily: 'breast', radsSystem: 'BI-RADS', radsCategory: 'BI-RADS 0' }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 1, priority: 'high' } },
+          { id: 'TIRADS_5_ENDO_URGENT', when: { findingFamily: 'thyroid', radsSystem: 'TI-RADS', radsCategory: 'TI-RADS 5', size_cm: { gte: 1.0 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'endocrinology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'TIRADS_4_ENDO', when: { findingFamily: 'thyroid', radsSystem: 'TI-RADS', radsCategory: 'TI-RADS 4', size_cm: { gte: 1.0 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'endocrinology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'TIRADS_3_US_12M', when: { findingFamily: 'thyroid', radsSystem: 'TI-RADS', radsCategory: 'TI-RADS 3', size_cm: { gte: 1.5, lt: 2.5 } }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 12, priority: 'medium' } },
+          { id: 'TIRADS_1_SUBCM_CLOSE', when: { findingFamily: 'thyroid', radsSystem: 'TI-RADS', radsCategory: 'TI-RADS 1', size_cm: { lte: 0.9 } }, then: { navigatorAction: ACTIONS.MARK_DONE, communicationMode: COMMS.NONE, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'PIRADS_5_URGENT', when: { findingFamily: 'prostate', radsSystem: 'PI-RADS', radsCategory: 'PI-RADS 5' }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'urology', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'PIRADS_4_REF', when: { findingFamily: 'prostate', radsSystem: 'PI-RADS', radsCategory: 'PI-RADS 4' }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'urology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'PIRADS_3_NOTIFY', when: { findingFamily: 'prostate', radsSystem: 'PI-RADS', radsCategory: 'PI-RADS 3' }, then: { navigatorAction: ACTIONS.NOTIFY_PROVIDER, communicationMode: COMMS.EMR, specialistReferral: 'urology', followUpInterval_months: 0, priority: 'medium' } },
+          { id: 'PIRADS_1_CLOSE', when: { findingFamily: 'prostate', radsSystem: 'PI-RADS', radsCategory: 'PI-RADS 1', hasPriorImaging: true, timeSinceLastImaging_months: { gte: 24 } }, then: { navigatorAction: ACTIONS.MARK_DONE, communicationMode: COMMS.NONE, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'LIRADS_5_URGENT', when: { findingFamily: 'liver', radsSystem: 'LI-RADS', radsCategory: 'LI-RADS 5' }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'hepatology', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'LIRADS_4_REF', when: { findingFamily: 'liver', radsSystem: 'LI-RADS', radsCategory: 'LI-RADS 4' }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'hepatology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'LIRADS_3_3M', when: { findingFamily: 'liver', radsSystem: 'LI-RADS', radsCategory: 'LI-RADS 3' }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 3, priority: 'medium' } },
+          { id: 'CADRADS_0_LETTER', when: { findingFamily: 'cardiac', radsSystem: 'CAD-RADS', radsCategory: 'CAD-RADS 0' }, then: { navigatorAction: ACTIONS.NOTIFY_PATIENT, communicationMode: COMMS.LETTER, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'CADRADS_3_NOTIFY', when: { findingFamily: 'cardiac', radsSystem: 'CAD-RADS', radsCategory: 'CAD-RADS 3' }, then: { navigatorAction: ACTIONS.NOTIFY_PROVIDER, communicationMode: COMMS.EMR, specialistReferral: 'cardiology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'CADRADS_4_5_REFER', when: { findingFamily: 'cardiac', radsSystem: 'CAD-RADS', radsCategory: ['CAD-RADS 4','CAD-RADS 5'] }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'cardiology', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'ORADS_5_URGENT', when: { findingFamily: 'ovary', radsSystem: 'O-RADS', radsCategory: 'O-RADS 5' }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'gynecologic_oncology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'ORADS_3_6M', when: { findingFamily: 'ovary', radsSystem: 'O-RADS', radsCategory: 'O-RADS 3' }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 6, priority: 'medium' } },
+          { id: 'NIRADS_4_URGENT', when: { findingFamily: 'head_neck', radsSystem: 'NI-RADS', radsCategory: 'NI-RADS 4' }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'otolaryngology', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'NIRADS_2_3M', when: { findingFamily: 'head_neck', radsSystem: 'NI-RADS', radsCategory: 'NI-RADS 2' }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 3, priority: 'medium' } },
+          { id: 'ADRENAL_GT4CM_ENDO', when: { findingFamily: 'adrenal', findingType: 'incidentaloma', size_cm: { gt: 4.0 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'endocrinology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'ADRENAL_1TO4CM_12M', when: { findingFamily: 'adrenal', findingType: 'incidentaloma', size_cm: { gte: 1.0, lte: 4.0 } }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 12, priority: 'medium' } },
+          { id: 'ADRENAL_LT1CM_CLOSE', when: { findingFamily: 'adrenal', findingType: 'incidentaloma', size_cm: { lt: 1.0 }, growth: 'stable' }, then: { navigatorAction: ACTIONS.AUTO_CLOSE, communicationMode: COMMS.NONE, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'RENAL_SOLID_GE4CM_URGENT', when: { findingFamily: 'renal', findingType: 'solid_mass', size_cm: { gte: 4.0 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'urology', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'RENAL_SOLID_1TO4CM_REF', when: { findingFamily: 'renal', findingType: 'solid_mass', size_cm: { gte: 1.0, lt: 4.0 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'urology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'RENAL_CYST_SUBCM_CLOSE', when: { findingFamily: 'renal', findingType: 'cystic', size_cm: { lt: 1.0 } }, then: { navigatorAction: ACTIONS.AUTO_CLOSE, communicationMode: COMMS.NONE, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'PANCYST_GE3CM_REF_GI', when: { findingFamily: 'pancreas', findingType: 'cyst', size_cm: { gte: 3.0 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'gastroenterology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'PANCYST_2TO3CM_6M', when: { findingFamily: 'pancreas', findingType: 'cyst', size_cm: { gte: 2.0, lt: 3.0 } }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'gastroenterology', followUpInterval_months: 6, priority: 'high' } },
+          { id: 'PANCYST_LT2CM_12M', when: { findingFamily: 'pancreas', findingType: 'cyst', size_cm: { lt: 2.0 } }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 12, priority: 'medium' } },
+          { id: 'LIVER_INDET_3M', when: { findingFamily: 'liver', findingType: 'indeterminate_lesion' }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 3, priority: 'medium' } },
+          { id: 'LIVER_CYST_LT3CM_CLOSE', when: { findingFamily: 'liver', findingType: 'cyst', size_cm: { lt: 3.0 }, growth: 'stable' }, then: { navigatorAction: ACTIONS.AUTO_CLOSE, communicationMode: COMMS.NONE, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'AAA_GE5_5_URGENT', when: { findingFamily: 'vascular', findingType: 'aneurysm', aneurysmLocation: 'AAA', aneurysmSize_cm: { gte: 5.5 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'vascular_surgery', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'AAA_4_0_TO_5_4_6M', when: { findingFamily: 'vascular', findingType: 'aneurysm', aneurysmLocation: 'AAA', aneurysmSize_cm: { gte: 4.0, lt: 5.5 }, growth: 'stable' }, then: { navigatorAction: ACTIONS.SCHEDULE, communicationMode: COMMS.EMR, specialistReferral: 'none', followUpInterval_months: 6, priority: 'high' } },
+          { id: 'TAA_GE5_5_URGENT', when: { findingFamily: 'vascular', findingType: 'aneurysm', aneurysmLocation: 'TAA', aneurysmSize_cm: { gte: 5.5 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.PHONE_EMR, specialistReferral: 'vascular_surgery', followUpInterval_months: 0, priority: 'urgent' } },
+          { id: 'POPLITEAL_GE2_0_REF', when: { findingFamily: 'vascular', findingType: 'aneurysm', aneurysmLocation: 'popliteal', aneurysmSize_cm: { gte: 2.0 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'vascular_surgery', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'INTRACRANIAL_GE7MM_NEURO', when: { findingFamily: 'vascular', findingType: 'aneurysm', aneurysmLocation: 'intracranial', size_mm: { gte: 7 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'neurosurgery', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'CAC_GE300_REF_CARD', when: { findingFamily: 'cardiac', findingType: 'CAC', CACScore: { gte: 300 } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.EMR, specialistReferral: 'cardiology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'CAC_100_299_NOTIFY_HIGH', when: { findingFamily: 'cardiac', findingType: 'CAC', CACScore: { gte: 100, lt: 300 } }, then: { navigatorAction: ACTIONS.NOTIFY_PROVIDER, communicationMode: COMMS.EMR, specialistReferral: 'cardiology', followUpInterval_months: 0, priority: 'high' } },
+          { id: 'CAC_1_99_NOTIFY_MED', when: { findingFamily: 'cardiac', findingType: 'CAC', CACScore: { gte: 1, lte: 99 } }, then: { navigatorAction: ACTIONS.NOTIFY_PROVIDER, communicationMode: COMMS.EMR, specialistReferral: 'cardiology', followUpInterval_months: 0, priority: 'medium' } },
+          { id: 'CAC_0_LETTER', when: { findingFamily: 'cardiac', findingType: 'CAC', CACScore: 0 }, then: { navigatorAction: ACTIONS.NOTIFY_PATIENT, communicationMode: COMMS.LETTER, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'NOPCP_HAS_LUNG_CLINIC', when: { hasPCPOnFile: false, hospitalSpecialists: { contains: 'lung_clinic' } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.LETTER_FAX, specialistReferral: 'lung_clinic', followUpInterval_months: 0, priority: 'medium' } },
+          { id: 'NOPCP_HAS_UROLOGY', when: { hasPCPOnFile: false, hospitalSpecialists: { contains: 'urology' } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.LETTER_FAX, specialistReferral: 'urology', followUpInterval_months: 0, priority: 'medium' } },
+          { id: 'NOPCP_HAS_BREAST_CENTER', when: { hasPCPOnFile: false, hospitalSpecialists: { contains: 'breast_center' } }, then: { navigatorAction: ACTIONS.REFER, communicationMode: COMMS.LETTER_FAX, specialistReferral: 'breast_center', followUpInterval_months: 0, priority: 'medium' } },
+          { id: 'DEFAULT_HAS_PCP_NOTIFY', when: { hasPCPOnFile: true }, then: { navigatorAction: ACTIONS.NOTIFY_PROVIDER, communicationMode: COMMS.EMR, specialistReferral: 'primary_care', followUpInterval_months: 0, priority: 'low' } },
+          { id: 'DEFAULT_NO_PCP_LETTER', when: { hasPCPOnFile: false }, then: { navigatorAction: ACTIONS.NOTIFY_PATIENT, communicationMode: COMMS.LETTER, specialistReferral: 'none', followUpInterval_months: 0, priority: 'low' } }
+        ];
+
+        function isWildcard(v) { return v === '*' || v === undefined || v === null; }
+        var ops = {
+            eq: function(a,b){ return a === b; },
+            ne: function(a,b){ return a !== b; },
+            lt: function(a,b){ return typeof a === 'number' && a < b; },
+            lte: function(a,b){ return typeof a === 'number' && a <= b; },
+            gt: function(a,b){ return typeof a === 'number' && a > b; },
+            gte: function(a,b){ return typeof a === 'number' && a >= b; },
+            in: function(a,arr){ return Array.isArray(arr) && arr.indexOf(a) !== -1; },
+            contains: function(arr,v){ return Array.isArray(arr) && arr.indexOf(v) !== -1; }
+        };
+
+        function matchField(inputVal, cond) {
+            if (isWildcard(cond)) return true;
+            if (typeof cond !== 'object' || Array.isArray(cond)) {
+                if (Array.isArray(cond)) return cond.indexOf(inputVal) !== -1;
+                return inputVal === cond;
             }
-        }
-        
-        // Show a notification message
-        function showNotification(message, isError = false) {
-            saveNotification.textContent = message;
-            saveNotification.className = isError ? 'notification error' : 'notification success';
-            saveNotification.style.display = 'block';
-            setTimeout(() => { saveNotification.style.display = 'none'; }, 4000);
-        }
-
-        // --- Event Listeners ---
-
-        // Load rules when the page loads
-        window.addEventListener('load', loadRules);
-
-        // Handle saving rules
-        saveButton.addEventListener('click', async () => {
-            try {
-                const response = await fetch('/api/rules', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ rules: yamlEditor.value })
-                });
-                const result = await response.json();
-                showNotification(result.message + ' Please restart the server to apply changes.');
-            } catch (error) {
-                showNotification('Failed to save rules.', true);
-                console.error('Save error:', error);
+            for (var k in cond) {
+                if (!cond.hasOwnProperty(k)) continue;
+                var rhs = cond[k];
+                if (k === 'contains') { if (!ops.contains(inputVal, rhs)) return false; }
+                else if (k === 'in') { if (!ops.in(inputVal, rhs)) return false; }
+                else { if (!ops[k] || !ops[k](inputVal, rhs)) return false; }
             }
+            return true;
+        }
+
+        function ruleMatches(input, when) {
+            for (var key in when) {
+                if (!when.hasOwnProperty(key)) continue;
+                if (!matchField(input[key], when[key])) return false;
+            }
+            return true;
+        }
+
+        function solve(input) {
+            for (var i = 0; i < RULES.length; i++) {
+                var r = RULES[i];
+                if (ruleMatches(input, r.when)) {
+                    var out = {};
+                    for (var k in r.then) out[k] = r.then[k];
+                    out._matchedRule = r.id || `rule_${i}`;
+                    return out;
+                }
+            }
+            return {
+                navigatorAction: ACTIONS.NOTIFY_PROVIDER,
+                communicationMode: COMMS.EMR,
+                specialistReferral: 'primary_care',
+                followUpInterval_months: 0,
+                priority: 'low',
+                _matchedRule: 'DEFAULT_FALLBACK'
+            };
+        }
+
+        window.addEventListener('load', () => {
+            rulesViewer.value = JSON.stringify(RULES, null, 2);
         });
 
-        // Handle running a test scenario
-        testForm.addEventListener('submit', async (event) => {
+        testForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const formData = new FormData(testForm);
             const data = {};
-            
-            // Convert form data to a clean JSON object
+
             formData.forEach((value, key) => {
-                if (value === '') return; // Don't include empty fields
-                
+                if (value === null || value.trim() === '') return;
                 const numVal = Number(value);
                 if (!isNaN(numVal) && value.trim() !== '') {
-                    data[key] = numVal; // Convert to number if possible
+                    data[key] = numVal;
                 } else if (value === 'true' || value === 'false') {
-                    data[key] = (value === 'true'); // Convert to boolean
+                    data[key] = (value === 'true');
                 } else if (key === 'hospitalSpecialists' && value.includes(',')) {
-                    data[key] = value.split(',').map(s => s.trim()); // Convert to array
-                }
-                else {
+                    data[key] = value.split(',').map(s => s.trim());
+                } else {
                     data[key] = value;
                 }
             });
 
             try {
-                const response = await fetch('/api/solve', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
+                const result = solve(data);
                 resultDisplay.textContent = JSON.stringify(result, null, 2);
             } catch (error) {
                 resultDisplay.textContent = `Error: ${error.message}`;
@@ -152,3 +238,4 @@
     </script>
 </body>
 </html>
+        
