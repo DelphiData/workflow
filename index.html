@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Rules Engine Interface</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .container { display: flex; gap: 30px; max-width: 1800px; margin: 0 auto; }
+        .column { flex: 1; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        h1, h2 { color: #111; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; }
+        textarea { width: 100%; height: 70vh; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 14px; padding: 10px; box-sizing: border-box; }
+        button { display: block; width: 100%; padding: 12px; font-size: 16px; font-weight: bold; color: #fff; background-color: #007bff; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; }
+        button:hover { background-color: #0056b3; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .form-grid label { font-weight: 500; }
+        .form-grid input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        #result-display { background-color: #282c34; color: #61dafb; padding: 15px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; margin-top: 20px; min-height: 50px; }
+        .notification { padding: 10px; margin-top: 10px; border-radius: 4px; text-align: center; font-weight: bold; display: none; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <h1>Hospital Follow-Up Rules Engine</h1>
+
+    <div class="container">
+        <div class="column">
+            <h2>Rule Editor (rules.yaml)</h2>
+            <textarea id="yaml-editor" spellcheck="false"></textarea>
+            <button id="save-rules-btn">Save Rules</button>
+            <div id="save-notification" class="notification"></div>
+        </div>
+
+        <div class="column">
+            <h2>Scenario Tester</h2>
+            <form id="test-form">
+                <div class="form-grid">
+                    <div><label for="encounterType">Encounter Type</label><input id="encounterType" name="encounterType" type="text"></div>
+                    <div><label for="growth">Growth</label><input id="growth" name="growth" type="text"></div>
+                    <div><label for="pathologyResult">Pathology Result</label><input id="pathologyResult" name="pathologyResult" type="text"></div>
+                    <div><label for="daysOverdue">Days Overdue</label><input id="daysOverdue" name="daysOverdue" type="number"></div>
+                    <div><label for="hasPCPOnFile">Has PCP On File</label><input id="hasPCPOnFile" name="hasPCPOnFile" type="text" placeholder="true / false"></div>
+                    <div><label for="findingFamily">Finding Family</label><input id="findingFamily" name="findingFamily" type="text"></div>
+                    <div><label for="findingType">Finding Type</label><input id="findingType" name="findingType" type="text"></div>
+                    <div><label for="radsSystem">RADS System</label><input id="radsSystem" name="radsSystem" type="text"></div>
+                    <div><label for="radsCategory">RADS Category</label><input id="radsCategory" name="radsCategory" type="text"></div>
+                    <div><label for="timeSinceLastImaging_months">Months Since Imaging</label><input id="timeSinceLastImaging_months" name="timeSinceLastImaging_months" type="number"></div>
+                    <div><label for="size_mm">Size (mm)</label><input id="size_mm" name="size_mm" type="number"></div>
+                    <div><label for="patientAge">Patient Age</label><input id="patientAge" name="patientAge" type="number"></div>
+                    <div><label for="size_cm">Size (cm)</label><input id="size_cm" name="size_cm" type="number"></div>
+                    <div><label for="hasPriorImaging">Has Prior Imaging</label><input id="hasPriorImaging" name="hasPriorImaging" type="text" placeholder="true / false"></div>
+                    <div><label for="aneurysmLocation">Aneurysm Location</label><input id="aneurysmLocation" name="aneurysmLocation" type="text"></div>
+                    <div><label for="aneurysmSize_cm">Aneurysm Size (cm)</label><input id="aneurysmSize_cm" name="aneurysmSize_cm" type="number"></div>
+                    <div><label for="CACScore">CAC Score</label><input id="CACScore" name="CACScore" type="number"></div>
+                    <div><label for="hospitalSpecialists">Hospital Specialists</label><input id="hospitalSpecialists" name="hospitalSpecialists" type="text" placeholder="e.g., lung_clinic,urology"></div>
+                </div>
+                <button type="submit">Run Scenario</button>
+            </form>
+            <h2>Result</h2>
+            <pre id="result-display">{ "output": "will appear here..." }</pre>
+        </div>
+    </div>
+
+    <script>
+        const yamlEditor = document.getElementById('yaml-editor');
+        const saveButton = document.getElementById('save-rules-btn');
+        const testForm = document.getElementById('test-form');
+        const resultDisplay = document.getElementById('result-display');
+        const saveNotification = document.getElementById('save-notification');
+
+        // --- Functions ---
+        
+        // Load rules from the server and populate the editor
+        async function loadRules() {
+            try {
+                const response = await fetch('/api/rules');
+                const rules = await response.text();
+                yamlEditor.value = rules;
+            } catch (error) {
+                yamlEditor.value = 'Error: Could not load rules. Is the server running?';
+                console.error('Failed to load rules:', error);
+            }
+        }
+        
+        // Show a notification message
+        function showNotification(message, isError = false) {
+            saveNotification.textContent = message;
+            saveNotification.className = isError ? 'notification error' : 'notification success';
+            saveNotification.style.display = 'block';
+            setTimeout(() => { saveNotification.style.display = 'none'; }, 4000);
+        }
+
+        // --- Event Listeners ---
+
+        // Load rules when the page loads
+        window.addEventListener('load', loadRules);
+
+        // Handle saving rules
+        saveButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/rules', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rules: yamlEditor.value })
+                });
+                const result = await response.json();
+                showNotification(result.message + ' Please restart the server to apply changes.');
+            } catch (error) {
+                showNotification('Failed to save rules.', true);
+                console.error('Save error:', error);
+            }
+        });
+
+        // Handle running a test scenario
+        testForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(testForm);
+            const data = {};
+            
+            // Convert form data to a clean JSON object
+            formData.forEach((value, key) => {
+                if (value === '') return; // Don't include empty fields
+                
+                const numVal = Number(value);
+                if (!isNaN(numVal) && value.trim() !== '') {
+                    data[key] = numVal; // Convert to number if possible
+                } else if (value === 'true' || value === 'false') {
+                    data[key] = (value === 'true'); // Convert to boolean
+                } else if (key === 'hospitalSpecialists' && value.includes(',')) {
+                    data[key] = value.split(',').map(s => s.trim()); // Convert to array
+                }
+                else {
+                    data[key] = value;
+                }
+            });
+
+            try {
+                const response = await fetch('/api/solve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                resultDisplay.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDisplay.textContent = `Error: ${error.message}`;
+                console.error('Solve error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
