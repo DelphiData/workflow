@@ -20,6 +20,14 @@
         #result-display { background-color: #282c34; color: #61dafb; padding: 15px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; margin-top: 20px; min-height: 50px; }
     </style>
 </head>
+      <script>
+    const password = prompt("Password:");
+    if (password !== "mySecret123") {
+      document.write("<h1>Access denied</h1>");
+      // Stop loading the rest of the page
+      throw new Error("Unauthorized");
+    }
+  </script>
 <body>
 
     <h1>Hospital Follow-Up Rules Engine (Client-Side Demo)</h1>
